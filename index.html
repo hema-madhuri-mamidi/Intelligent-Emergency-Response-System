@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intelligent Emergency Response System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-bg" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">◉</span>
+        <div class="brand-text">
+          <h1>Intelligent Emergency Response System</h1>
+          <p class="brand-sub">Live facility monitoring · Hotel &amp; control room mode</p>
+        </div>
+      </div>
+      <nav class="main-nav" aria-label="Primary">
+        <button type="button" class="nav-btn active" data-view="trigger">Trigger</button>
+        <button type="button" class="nav-btn" data-view="dashboard">Dashboard</button>
+        <button type="button" class="nav-btn" data-view="history">History</button>
+      </nav>
+      <div class="header-status">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span class="live-label">Live</span>
+        <span class="clock" id="headerClock">—</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <!-- Dashboard -->
+    <section id="view-dashboard" class="view" aria-labelledby="dash-heading">
+      <div class="section-head">
+        <h2 id="dash-heading">Live Dashboard</h2>
+        <p class="section-desc">Active incidents and responder queue</p>
+      </div>
+
+      <div class="dashboard-toolbar">
+        <div class="filter-chips" role="group" aria-label="Filter by status">
+          <button type="button" class="chip active" data-filter="all">All</button>
+          <button type="button" class="chip" data-filter="Pending">Pending</button>
+          <button type="button" class="chip" data-filter="In Progress">In Progress</button>
+          <button type="button" class="chip" data-filter="Resolved">Resolved</button>
+        </div>
+        <div class="stat-pills">
+          <span class="stat-pill"><strong id="statOpen">0</strong> open</span>
+          <span class="stat-pill stat-pill-muted"><strong id="statResolved">0</strong> resolved today</span>
+        </div>
+      </div>
+
+      <div class="emergency-grid" id="emergencyGrid" aria-live="polite"></div>
+      <p class="empty-state hidden" id="dashEmpty">No emergencies match this filter.</p>
+    </section>
+
+    <!-- Trigger: main page -->
+    <section id="view-trigger" class="view view-active" aria-labelledby="trigger-heading">
+      <div class="section-head">
+        <h2 id="trigger-heading">Emergency Trigger Panel</h2>
+        <p class="section-desc">Check in once — emergencies run a fast location check (confirm → beacon → quick entry)</p>
+      </div>
+
+      <div class="trigger-layout">
+        <div class="card location-card checkin-card">
+          <div class="card-title-row">
+            <h3 class="card-title">Location check-in</h3>
+            <span class="info-tip" tabindex="0" data-tooltip="Save where you are in the building. Every manual emergency uses this location so you are not asked again during a crisis.">ℹ️</span>
+          </div>
+          <p class="card-sub checkin-sub">Building, floor, and room are stored on this device and used for all <strong>manual</strong> reports.</p>
+          <form class="checkin-form" id="checkinForm" autocomplete="on">
+            <label class="field-label">Building
+              <input type="text" id="checkinBuilding" name="building" required placeholder="e.g. Grand Plaza Hotel" class="field-input" />
+            </label>
+            <label class="field-label">Floor
+              <input type="text" id="checkinFloor" name="floor" required placeholder="e.g. 3" class="field-input" />
+            </label>
+            <label class="field-label">Room
+              <input type="text" id="checkinRoom" name="room" required placeholder="e.g. 312" class="field-input" />
+            </label>
+            <button type="submit" class="btn btn-primary btn-block">Save check-in</button>
+          </form>
+          <p class="checkin-live" id="checkinLive" aria-live="polite"></p>
+        </div>
+
+        <div class="card trigger-main user-report-card">
+          <div class="card-title-row">
+            <h3 class="card-title">Report Emergency (Manual)</h3>
+            <span class="info-tip" tabindex="0" data-tooltip="You confirm you are still at check-in, or we try Bluetooth beacons, then a 2-field floor/room fallback. Everything is timestamped.">ℹ️</span>
+          </div>
+          <p class="card-sub user-report-hint">Tap an emergency type — we’ll confirm your location (check-in, Bluetooth beacon, or quick floor/room).</p>
+          <div class="big-triggers">
+            <button type="button" class="big-btn big-btn-fire" data-type="Fire" data-priority="high">
+              <span class="big-btn-icon">🔥</span>
+              <span class="big-btn-label">Fire</span>
+            </button>
+            <button type="button" class="big-btn big-btn-medical" data-type="Medical" data-priority="high">
+              <span class="big-btn-icon">🏥</span>
+              <span class="big-btn-label">Medical</span>
+            </button>
+            <button type="button" class="big-btn big-btn-security" data-type="Security" data-priority="medium">
+              <span class="big-btn-icon">🚨</span>
+              <span class="big-btn-label">Security</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card sim-card">
+          <div class="card-title-row">
+            <h3 class="card-title">Automatic Sensor Detection</h3>
+            <span class="info-tip" tabindex="0" data-tooltip="Simulates IoT devices like smoke detectors and fall sensors at fixed installation points.">ℹ️</span>
+          </div>
+          <p class="card-sub">Sensor-Based Detection (Fixed Locations)</p>
+          <p class="sensor-hint">&gt; Simulates alerts from installed sensors like smoke detectors</p>
+          <div class="sim-buttons sim-buttons-stack">
+            <button type="button" class="btn btn-sim btn-sim-block btn-fire-outline" data-sim="fire">
+              <span class="btn-sim-main">Smoke Detected (Fire)</span>
+              <span class="btn-sim-sub">Smoke Sensor – Floor 3</span>
+            </button>
+            <button type="button" class="btn btn-sim btn-sim-block" data-sim="fall">
+              <span class="btn-sim-main">Fall Detected (Medical)</span>
+              <span class="btn-sim-sub">Fall Sensor – Room 102</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card ai-card">
+          <div class="card-title-row">
+            <h3 class="card-title">AI Camera Detection</h3>
+            <span class="info-tip" tabindex="0" data-tooltip="Simulates camera-based AI detection from CCTV-style feeds (demo uses a still image).">ℹ️</span>
+          </div>
+          <p class="card-sub">AI Camera Detection (CCTV Based)</p>
+          <p class="ai-hint-top">&gt; Detects emergencies from camera feeds</p>
+          <label class="upload-zone" id="uploadZone">
+            <input type="file" id="aiImageInput" accept="image/*" class="visually-hidden" />
+            <span class="upload-icon">📷</span>
+            <span class="upload-text">Upload Image for AI Analysis (CCTV Simulation)</span>
+            <span class="upload-micro">&gt; System analyzes image to detect emergency</span>
+          </label>
+          <div class="preview-wrap hidden" id="aiPreviewWrap">
+            <img src="" alt="Uploaded preview" id="aiPreviewImg" class="ai-preview-img" />
+            <button type="button" class="btn btn-primary btn-block" id="btnAiAnalyze">Run AI analysis (simulated)</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section id="view-history" class="view" aria-labelledby="history-heading">
+      <div class="section-head">
+        <h2 id="history-heading">Incident History</h2>
+        <p class="section-desc">Resolved and archived events</p>
+      </div>
+      <div class="card table-card">
+        <div class="table-scroll">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Location</th>
+                <th>Location type</th>
+                <th>Source</th>
+                <th>Priority</th>
+                <th>Status</th>
+                <th>Resolved</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Emergency location flow: fast, minimal -->
+  <div id="emergencyModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop" id="emergencyModalBackdrop"></div>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div id="modalStepConfirm" class="modal-step">
+        <h3 id="modalTitle" class="modal-title">Confirm location</h3>
+        <p class="modal-text" id="modalConfirmText">Are you still in your last checked-in location?</p>
+        <p class="modal-sub" id="modalConfirmLoc"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-primary btn-modal" id="btnLocYes">Yes</button>
+          <button type="button" class="btn btn-modal-secondary" id="btnLocNo">No</button>
+          <button type="button" class="btn btn-modal-ghost" id="btnLocCancel">Cancel</button>
+        </div>
+      </div>
+      <div id="modalStepBeacon" class="modal-step hidden">
+        <h3 class="modal-title">Bluetooth beacon</h3>
+        <p class="modal-text">Searching for nearest Bluetooth beacon…</p>
+        <div class="modal-spinner" id="modalSpinner" aria-hidden="true"></div>
+        <p class="modal-sub" id="modalBeaconHint">Demo: simulates fixed BLE anchors when no hardware is paired. You can also try a real device below.</p>
+        <div class="modal-actions modal-actions-stack">
+          <button type="button" class="btn btn-primary btn-modal" id="btnBleScan">Scan with Bluetooth</button>
+          <button type="button" class="btn btn-modal-ghost" id="btnSkipBle">Skip scan — enter manually</button>
+        </div>
+      </div>
+      <div id="modalStepManual" class="modal-step hidden">
+        <h3 class="modal-title">Your location</h3>
+        <p class="modal-text">Beacon not found. Enter <strong>floor</strong> and <strong>room</strong> only.</p>
+        <p class="modal-sub" id="modalManualBuilding"></p>
+        <form class="modal-quick-form" id="modalManualForm">
+          <label class="field-label field-label-inline">Floor
+            <input type="text" id="quickFloor" name="floor" required inputmode="numeric" autocomplete="off" class="field-input" placeholder="e.g. 3" />
+          </label>
+          <label class="field-label field-label-inline">Room
+            <input type="text" id="quickRoom" name="room" required autocomplete="off" class="field-input" placeholder="e.g. 312" />
+          </label>
+          <div class="modal-actions">
+            <button type="submit" class="btn btn-primary btn-modal btn-block">Send alert</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer" aria-live="assertive"></div>
+
+  <script>
+    window.IERS_API_BASE = window.IERS_API_BASE || "http://127.0.0.1:8000/api";
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
